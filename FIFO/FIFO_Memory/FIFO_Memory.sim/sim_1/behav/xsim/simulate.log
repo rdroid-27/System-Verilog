@@ -1,0 +1,67 @@
+Time resolution is 1 ps
+[DRV] : DUT Reset Done
+------------------------------------------
+[GEN] : Oper : 0 iteration : 1
+[DRV] : DATA READ
+[MON] : Wr:0 rd:1 din:0 dout:0 full:0 empty:1
+[SCO] : Wr:0 rd:1 din:0 dout:0 full:0 empty:1
+[SCO] : FIFO IS EMPTY
+--------------------------------------
+[GEN] : Oper : 0 iteration : 2
+[DRV] : DATA READ
+[MON] : Wr:0 rd:1 din:0 dout:0 full:0 empty:1
+[SCO] : Wr:0 rd:1 din:0 dout:0 full:0 empty:1
+[SCO] : FIFO IS EMPTY
+--------------------------------------
+[GEN] : Oper : 1 iteration : 3
+[DRV] : DATA WRITE  data : 5
+[MON] : Wr:1 rd:0 din:5 dout:0 full:0 empty:1
+[SCO] : Wr:1 rd:0 din:5 dout:0 full:0 empty:1
+[SCO] : DATA STORED IN QUEUE :5
+--------------------------------------
+[GEN] : Oper : 1 iteration : 4
+[DRV] : DATA WRITE  data : 3
+[MON] : Wr:1 rd:0 din:3 dout:0 full:0 empty:0
+[SCO] : Wr:1 rd:0 din:3 dout:0 full:0 empty:0
+[SCO] : DATA STORED IN QUEUE :3
+--------------------------------------
+[GEN] : Oper : 1 iteration : 5
+[DRV] : DATA WRITE  data : 3
+[MON] : Wr:1 rd:0 din:3 dout:0 full:0 empty:0
+[SCO] : Wr:1 rd:0 din:3 dout:0 full:0 empty:0
+[SCO] : DATA STORED IN QUEUE :3
+--------------------------------------
+[GEN] : Oper : 1 iteration : 6
+[DRV] : DATA WRITE  data : 5
+[MON] : Wr:1 rd:0 din:5 dout:0 full:0 empty:0
+[SCO] : Wr:1 rd:0 din:5 dout:0 full:0 empty:0
+[SCO] : DATA STORED IN QUEUE :5
+--------------------------------------
+[GEN] : Oper : 0 iteration : 7
+[DRV] : DATA READ
+[MON] : Wr:0 rd:1 din:5 dout:5 full:0 empty:0
+[SCO] : Wr:0 rd:1 din:5 dout:5 full:0 empty:0
+[SCO] : DATA MATCH
+--------------------------------------
+[GEN] : Oper : 0 iteration : 8
+[DRV] : DATA READ
+[MON] : Wr:0 rd:1 din:5 dout:3 full:0 empty:0
+[SCO] : Wr:0 rd:1 din:5 dout:3 full:0 empty:0
+[SCO] : DATA MATCH
+--------------------------------------
+[GEN] : Oper : 0 iteration : 9
+[DRV] : DATA READ
+[MON] : Wr:0 rd:1 din:5 dout:3 full:0 empty:0
+[SCO] : Wr:0 rd:1 din:5 dout:3 full:0 empty:0
+[SCO] : DATA MATCH
+--------------------------------------
+[GEN] : Oper : 0 iteration : 10
+[DRV] : DATA READ
+[MON] : Wr:0 rd:1 din:5 dout:5 full:0 empty:0
+[SCO] : Wr:0 rd:1 din:5 dout:5 full:0 empty:0
+[SCO] : DATA MATCH
+--------------------------------------
+---------------------------------------------
+Error Count :0
+---------------------------------------------
+$finish called at time : 690 ns : File "C:/Users/OMEN/Desktop/System-Verilog/FIFO/testbench.sv" Line 238
