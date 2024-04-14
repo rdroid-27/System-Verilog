@@ -93,13 +93,13 @@ this.mbx=mbx;
 endfunction
 
 task run();
-tr=new();
-forever begin
-    repeat (2) @(posedge vif.clk);
-    tr.dout=vif.dout;
-    mbx.put(tr);
-    tr.display("MON");
-end
+    tr=new();
+    forever begin
+        repeat (2) @(posedge vif.clk);
+        tr.dout=vif.dout;
+        mbx.put(tr);
+        tr.display("MON");
+    end
 endtask
 
 endclass
@@ -185,7 +185,7 @@ join_any
 endtask
 
 task post_test();
-wait(den.done.triggered);
+wait(gen.done.triggered);
 $finish();
 endtask
 
