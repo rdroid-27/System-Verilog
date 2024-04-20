@@ -94,12 +94,12 @@ module axi_slave(
     input arvalid,	//address read valid signal
         
     //read data channel
-        output reg [3:0] rid,		//read data id
-        output reg [31:0] rdata,     //read data from slave
-        output reg [1:0] rresp,		//read response signal
-        output reg rlast,		//read data last signal
-        output reg rvalid,		//read data valid signal
-        input rready
+    output reg [3:0] rid,	//read data id
+    output reg [31:0] rdata,//read data from slave
+    output reg [1:0] rresp,	//read response signal
+    output reg rlast,		//read data last signal
+    output reg rvalid,		//read data valid signal
+    input rready
 );
 
     typedef enum bit [1:0] { awidle=2'b00, awstart=2'b01, awreadys=2'b10 } awstate_type;
@@ -316,85 +316,418 @@ module axi_slave(
             bit [7:0] boundary;
 
             unique case (awlen)                     
-                4'b0001: begin
-                    men[awaddrt]=wdatat[7:0];
-                    addr=awaddrt+1;
-                end 
-                4'b0010: begin
-                    mem[awaddrt]=wdatat[15:8];
-                    addr=awaddrt+1;
-                end
-                4'b0011:begin
-                    mem[awaddrt]=wdatat[7:0];
-                    mem[awaddrt+1]=wdatat[15:8];
-                    addr=awaddrt+2;
-                end
-                4'b0100:begin
-                    mem[awaddrt]=wdatat[23:16];
-                    addr=awaddrt+1;
-                end
-                4'b0101:begin
-                    mem[awaddrt]=wdatat[7:0];
-                    mem[awaddrt+1]=wdatat[23:16];
-                    addr=awaddrt+2;
-                end
-                4'b0110:begin
-                    mem[awaddrt]=wdatat[15:8];
-                    mem[awaddrt+1]=wdatat[23:16];
-                    addr=awaddrt+2;
-                end
-                4'b0111:begin
-                    mem[awaddrt]=wdatat[7:0];
-                    mem[awaddrt+1]=wdatat[15:8];
-                    mem[awaddrt+2]=wdatat[23:16];
-                    addr=awaddrt+3;
-                end
-                4'b1000:begin
-                    mem[awaddrt]=wdatat[31:24];
-                    addr=awaddrt+1;
-                end
-                4'b1001:begin
-                    mem[awaddrt]=wdatat[7:0];
-                    mem[awaddrt+1]=wdatat[31:24];
-                    addr=awaddrt+2;
-                end
-                4'b1010:begin
-                    mem[awaddrt]=wdatat[15:8];
-                    mem[awaddrt+1]=wdatat[31:24];
-                    addr=awaddrt+2;
-                end
-                4'b1011:begin
-                    mem[awaddrt]=wdatat[7:0];
-                    mem[awaddrt+1]=wdatat[15:8];
-                    mem[awaddrt+2]=wdatat[31:24];
-                    addr=awaddrt+3;
-                end
-                4'b1100:begin
-                    mem[awaddrt]=wdatat[23:16];
-                    mem[awaddrt+1]=wdatat[31:24];
-                    addr=awaddrt+2;
-                end
-                4'b1101:begin
-                    mem[awaddrt]=wdatat[7:0];
-                    mem[awaddrt+1]=wdatat[23:16];
-                    mem[awaddrt+2]=wdatat[31:24];
-                    addr=awaddrt+3;
-                end
-                4'b1110:begin
-                    mem[awaddrt]=wdatat[15:8];
-                    mem[awaddrt+1]=wdatat[23:16];
-                    mem[awaddrt+2]=wdatat[31:24];
-                    addr=awaddrt+3;
-                end
-                4'b1111:begin
-                    mem[awaddrt]=wdatat[7:0];
-                    mem[awaddrt+1]=wdatat[15:8];
-                    mem[awaddrt+2]=wdatat[23:16];
-                    mem[awaddrt+3]=wdatat[31:24];
-                    addr=awaddrt+4;
-                end 
+              4'b0001: begin
+                unique case(awsize)
+                3'b000: boundary=2*1;
+                3'b001: boundary=2*2;
+                3'b010: boundary=2*4;
+                endcase
+              end
+              4'b0011: begin
+                unique case(awsize)
+                3'b000: boundary=4*1;
+                3'b001: boundary=4*2;
+                3'b010: boundary=4*4;
+                endcase
+              end
+              4'b0111: begin
+                unique case(awsize)
+                3'b000: boundary=8*1;
+                3'b001: boundary=8*2;
+                3'b010: boundary=8*4;
+                endcase
+              end
+              4'b1111: begin
+                unique case(awsize)
+                3'b000: boundary=16*1;
+                3'b001: boundary=16*2;
+                3'b010: boundary=16*4;
+                endcase
+              end
             endcase          
-            return addr;    
+            return boundary;    
         endfunction
+
+        // function to compute next address during wrap butst type
+        function bit[7:0] data_wr_wrap(input [3:0] wstrb, input [31:0] awaddrt, input [7:0] wboundary);
+            bit [31:0] addr1, addr2, addr3, addr4;
+            bit [31:0] nextaddr,nextaddr2;
+
+            unique case (wstrb)
+                    4'b0001: begin 
+                mem[awaddrt] = wdatat[7:0];
+                
+                if((awaddrt + 1) % wboundary == 0)
+                addr1 = (awaddrt + 1) - wboundary;
+                else
+                addr1 = awaddrt + 1;
+                
+            return addr1;      
+            end
+            
+            /////////////////////////////////////////////////
+            
+            4'b0010: begin 
+                mem[awaddrt] = wdatat[15:8];
+                
+            if((awaddrt + 1) % wboundary == 0)
+                addr1 = (awaddrt + 1) - wboundary;
+                else
+                addr1 = awaddrt + 1;
+                
+            return addr1;   
+            end
+            
+            ///////////////////////////////////////////////////
+            
+            4'b0011: begin 
+                mem[awaddrt] = wdatat[7:0];
+                
+            if((awaddrt + 1) % wboundary == 0)
+                addr1 = (awaddrt + 1) - wboundary;
+                else
+                addr1 = awaddrt + 1;
+                        
+            mem[addr1] = wdatat[15:8]; 
+                    
+            if((addr1 + 1) % wboundary == 0)
+                addr2 = (addr1 + 1) - wboundary;
+                else
+                addr2 = addr1 + 1;
+                
+                return addr2;   
+                
+            end
+                
+            ///////////////////////////////////////////////  
+            
+            4'b0100: begin 
+                mem[awaddrt] = wdatat[23:16];
+                
+                if((awaddrt + 1) % wboundary == 0)
+                addr1 = (awaddrt + 1) - wboundary;
+                else
+                addr1 = awaddrt + 1;
+                
+            return addr1;
+            end
+            
+            //////////////////////////////////////////////
+            
+            4'b0101: begin 
+                mem[awaddrt] = wdatat[7:0];
+                
+                if((awaddrt + 1) % wboundary == 0)
+                addr1 = (awaddrt + 1) - wboundary;
+                else
+                addr1 = awaddrt + 1;
+                
+                
+                mem[addr1] = wdatat[23:16];
+                
+                
+                if((addr1 + 1) % wboundary == 0)
+                addr2 = (addr1 + 1) - wboundary;
+                else
+                addr2 = addr1 + 1;
+                
+                return addr2;  
+                    
+            end
+            
+            ///////////////////////////////////////////////////
+            
+            4'b0110: begin 
+                mem[awaddrt] = wdatat[15:8];
+                
+                if((awaddrt + 1) % wboundary == 0)
+                addr1 = (awaddrt + 1) - wboundary;
+                else
+                addr1 = awaddrt + 1;
+                
+                mem[addr1] = wdatat[23:16];
+                
+                if((addr1 + 1) % wboundary == 0)
+                addr2 = (addr1 + 1) - wboundary;
+                else
+                addr2 = addr1 + 1;
+                
+                return addr2;  
+                
+            end
+            //////////////////////////////////////////////////////////////
+            
+            4'b0111: begin 
+                mem[awaddrt] = wdatat[7:0];    
+                if((awaddrt + 1) % wboundary == 0)
+                addr1 = (awaddrt + 1) - wboundary;
+                else
+                addr1 = awaddrt + 1;
+                
+                mem[addr1] = wdatat[15:8];
+                
+                if((addr1 + 1) % wboundary == 0)
+                addr2 = (addr1 + 1) - wboundary;
+                else
+                addr2 = addr1 + 1;
+                
+                mem[addr2] = wdatat[23:16];
+                
+                if((addr2 + 1) % wboundary == 0)
+                addr3 = (addr2 + 1) - wboundary;
+                else
+                addr3 = addr2 + 1;
+                
+                return addr3;
+            end
+            
+            4'b1000: begin 
+                mem[awaddrt] = wdatat[31:24];
+                
+                if((awaddrt + 1) % wboundary == 0)
+                addr1 = (awaddrt + 1) - wboundary;
+                else
+                addr1 = awaddrt + 1;
+                
+                return addr1;
+            end
+            
+            4'b1001: begin 
+                mem[awaddrt] = wdatat[7:0];
+                
+                if((awaddrt + 1) % wboundary == 0)
+                addr1 = (awaddrt + 1) - wboundary;
+                else
+                addr1 = awaddrt + 1;
+                
+                
+                mem[addr1] = wdatat[31:24];
+                
+                if((addr1 + 1) % wboundary == 0)
+                addr2 = (addr1 + 1) - wboundary;
+                else
+                addr2 = addr1 + 1;
+                
+                return addr2;
+            end
+            
+            
+            4'b1010: begin 
+                mem[awaddrt] = wdatat[15:8];
+                
+                if((awaddrt + 1) % wboundary == 0)
+                addr1 = (awaddrt + 1) - wboundary;
+                else
+                addr1 = awaddrt + 1;
+                
+                mem[addr1] = wdatat[31:24];
+                
+                if((addr1 + 1) % wboundary == 0)
+                addr2 = (addr1 + 1) - wboundary;
+                else
+                addr2 = addr1 + 1;
+                
+                return addr2;
+            end
+            
+            
+            4'b1011: begin 
+                mem[awaddrt] = wdatat[7:0];
+                
+                if((awaddrt + 1) % wboundary == 0)
+                addr1 = (awaddrt + 1) - wboundary;
+                else
+                addr1 = awaddrt + 1;
+                
+                
+                mem[addr1] = wdatat[15:8];
+                
+                if((addr1 + 1) % wboundary == 0)
+                addr2 = (addr1 + 1) - wboundary;
+                else
+                addr2 = addr1 + 1;
+                
+                mem[addr2] = wdatat[31:24];
+                
+                if((addr2 + 1) % wboundary == 0)
+                addr3 = (addr2 + 1) - wboundary;
+                else
+                addr3 = addr2 + 1;
+                            
+            return addr3;
+            
+            end
+            
+            4'b1100: begin 
+                mem[awaddrt] = wdatat[23:16];
+                
+                if((awaddrt + 1) % wboundary == 0)
+                addr1 = (awaddrt + 1) - wboundary;
+                else
+                addr1 = awaddrt + 1;
+                
+                mem[addr1] = wdatat[31:24];
+                
+                if((addr1 + 1) % wboundary == 0)
+                addr2 = (addr1 + 1) - wboundary;
+                else
+                addr2 = addr1 + 1;
+                
+                return addr2;
+            end
+        
+            4'b1101: begin 
+                mem[awaddrt] = wdatat[7:0];
+                
+                if((awaddrt + 1) % wboundary == 0)
+                addr1 = (awaddrt + 1) - wboundary;
+                else
+                addr1 = awaddrt + 1;
+                
+                mem[addr1] = wdatat[23:16];
+                
+                if((addr1 + 1) % wboundary == 0)
+                addr2 = (addr1 + 1) - wboundary;
+                else
+                addr2 = addr1 + 1;
+                
+                mem[addr2] = wdatat[31:24];
+                
+                if((addr2 + 1) % wboundary == 0)
+                addr3 = (addr2 + 1) - wboundary;
+                else
+                addr3 = addr2 + 1;
+                            
+            return addr3;
+                
+            end
+        
+            4'b1110: begin 
+                mem[awaddrt] = wdatat[15:8];
+                
+                if((awaddrt + 1) % wboundary == 0)
+                addr1 = (awaddrt + 1) - wboundary;
+                else
+                addr1 = awaddrt + 1;
+                
+                mem[addr1] = wdatat[23:16];
+                
+                if((addr1 + 1) % wboundary == 0)
+                addr2 = (addr1 + 1) - wboundary;
+                else
+                addr2 = addr1 + 1;
+                
+                mem[addr2] = wdatat[31:24];
+                
+                if((addr2 + 1) % wboundary == 0)
+                addr3 = (addr2 + 1) - wboundary;
+                else
+                addr3 = addr2 + 1;
+                
+                return addr3;
+            end
+            
+            4'b1111: begin
+                mem[awaddrt] = wdatat[7:0];
+                
+                if((awaddrt + 1) % wboundary == 0)
+                addr1 = (awaddrt + 1) - wboundary;
+                else
+                addr1 = awaddrt + 1;
+                
+                mem[addr1] = wdatat[15:8];
+                
+                if((addr1 + 1) % wboundary == 0)
+                addr2 = (addr1 + 1) - wboundary;
+                else
+                addr2 = addr1 + 1;
+                
+                mem[addr2] = wdatat[23:16];
+                
+                if((addr2 + 1) % wboundary == 0)
+                addr3 = (addr2 + 1) - wboundary;
+                else
+                addr3 = addr2 + 1;
+                
+                
+                mem[addr3] = wdatat[31:24]; 
+                
+            if((addr3 + 1) % wboundary == 0)
+                addr4 = (addr3 + 1) - wboundary;
+                else
+                addr4 = addr3 + 1;
+                
+                return addr4;        
+            end
+        endcase
+        endfunction
+
+        // fsm for write data
+        reg [7:0] boundary; //storing boundary
+        reg [3:0] wlen_count;
+
+        typedef enum bit [2:0] { widle=0, wstart=1, wreadys=2, wvalids=3, waddr_dec=4 } wstate_type;
+        wstate_type wstate,wnext_state;
+
+        always_comb
+        begin
+            case (wstate)
+                widle: begin
+                    wready=1'b0;
+                    wnext_state=wstart;
+                    first=1'b0;
+                    wlen_count=0;
+                end 
+                
+                wstart: begin
+                    if(wvalid) begin
+                        wnext_state=waddr_dec;
+                        wdatat=wdata;
+                    end
+                    else wnext_state=wstart;
+                end 
+
+                waddr_dec:begin
+                    wnext_state=wreadys;
+                    if(first==0) begin
+                        nextaddr=awaddr;
+                        first=1'b1;
+                    end
+                    else if(wlen_count!=(awlen+1)) nextaddr=retaddr;
+                    else nextaddr=awaddr;
+                end
+
+                wreadys: begin
+                    if(wlast==1'b1) begin
+                        wnext_state=widle;
+                        wready=1'b0;
+                        wlen_count=0;
+                        first=0;
+                    end
+                    else begin
+                        wnext_state=wvalids;
+                        wready=1'b1;
+                    end
+
+                    case (awburst)
+                        2'b00: retaddr=data_wr_fixed(wstrb,awaddr);
+                        2'b01: retaddr=data_wr_incr(wstrb,awaddr);
+                        2'b10: begin
+                            boundary=wrap_boundary(awlen,awsize);
+                            retaddr=data_wr_wrap(wstrb,nextaddr,boundary);
+                        end 
+                    endcase
+                end
+
+                wvalids: begin
+                    wready=1'b0;
+                    wnext_state=wstart;
+                    if(wlen_count!=(awlen+1)) wlen_count=wlen_count+1;
+                    else wlen_count=wlen_count;
+                end
+            endcase
+        end
+        
+        // fsm for write response
 
 endmodule
